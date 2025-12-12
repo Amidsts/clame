@@ -1,0 +1,12 @@
+@server = http://127.0.0.1:40001
+
+###
+GET {{server}}
+
+####
+POST {{server}}/v1/products/search
+Content-Type: application/json
+
+{
+    "productInfo": "Hi! I would like to purchase a headset"
+}

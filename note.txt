@@ -20,6 +20,13 @@ CHALLEENGES
 TODO: 
 - test the AI setup
 - create the endpoint for user to interrct with the AI, takes user input, reprocess the AI response<find products in the category from the AI response> and return the result
+- Create a README file, describing the project
+- publish to render
+- create a dockerfile
+- create a docker-compose file
+- deploy to AWS
+- test the app with load testing
+- create a CICD pipeline
 
 ====================
 

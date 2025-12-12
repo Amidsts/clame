@@ -1,18 +1,20 @@
 import { Router, Request, Response } from "express";
 import { searchProductSchema } from "./validations";
 import { validateInput } from "../../../utils/helpers";
+import { searchProduct } from "../../../controllers/products";
+import { handleResponse } from "../../../utils/response";
 
 const router = Router();
 
-//TODO:
-//setup openAI
-//interract with openAI for product search
 router.post(
   "/search",
   validateInput(searchProductSchema),
-  (req: Request, res: Response) => {
+  async (req: Request, res: Response) => {
     const { productInfo } = req.body;
-    res.send({ message: "Product search endpoint" });
+
+    const data = await searchProduct(productInfo);
+
+    return handleResponse({ res, data });
   }
 );
 

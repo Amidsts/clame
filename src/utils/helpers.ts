@@ -4,19 +4,22 @@ import csv from "csv-parser";
 import fs from "fs";
 
 export const validateInput =
-  (schema: Joi.ObjectSchema<any>, fieldType: "body" | "params" | "query" = "body") =>
+  (
+    schema: Joi.ObjectSchema<any>,
+    fieldType: "body" | "params" | "query" = "body"
+  ) =>
   async (req: Request, _res: Response, next: NextFunction) => {
     try {
       let parsedData;
       if (fieldType === "body") {
         parsedData = schema.validate(req.body);
-        req.body = parsedData;
+        req.body = parsedData.value;
       } else if (fieldType === "params") {
         parsedData = schema.validate(req.params);
-        req.params = parsedData;
+        req.params = parsedData.value;
       } else if (fieldType === "query") {
         parsedData = schema.validate(req.query);
-        req.query = parsedData;
+        req.query = parsedData.value;
       }
 
       next();

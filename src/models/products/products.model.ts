@@ -1,4 +1,4 @@
-import { Schema, Document, model, Types } from "mongoose";
+import { Schema, Document, model, Model } from "mongoose";
 
 export interface IProduct extends Document {
   name: string;
@@ -8,6 +8,10 @@ export interface IProduct extends Document {
   image: string;
   createdAt?: Date;
   updatedAt?: Date;
+}
+
+export interface IProductModel extends Model<IProduct> {
+  findProductsByCategory(category: string[]): Promise<IProduct[]>;
 }
 
 export enum ProductCategory {
@@ -37,6 +41,10 @@ const ProductSchema: Schema = new Schema(
   }
 );
 
-const ProductModel = model<IProduct>("Product", ProductSchema);
+ProductSchema.statics.findProductsByCategory = function (categories: string[]) {
+  return this.find({ category: { $in: categories } });
+};
+
+const ProductModel = model<IProduct, IProductModel>("Product", ProductSchema);
 
 export default ProductModel;

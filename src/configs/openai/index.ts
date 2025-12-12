@@ -1,6 +1,8 @@
 import OpenAI from "openai";
 import appConfig from "..";
 import createLogger, { ModuleType } from "../../utils/logger";
+import { InternalError } from "../errors";
+import { AgentProductSearchResponse } from "../../controllers/products/types";
 
 const logger = createLogger(ModuleType.Config, "AI AGENT SETUP");
 const { openAiApiKey } = appConfig;
@@ -87,8 +89,27 @@ export async function searchProduct(input: string): Promise<string> {
     });
 
     logger.info("AI agent response", response);
-    return response.output_text;
+
+    return response.output_text.replace("```json", "").replace("```", "");
   } catch (error) {
     throw error;
   }
+}
+
+export async function prepareProductDetailsForRequest(
+  input: string
+): Promise<AgentProductSearchResponse> {
+  const response = await searchProduct(input);
+  if (!response) {
+    const error = new InternalError(
+      "AI Agent could not process the product request"
+    );
+
+    logger.info(error.message, { error, request: input });
+    throw error;
+  }
+
+  logger.info("Raw AI agent response", { response });
+  const res = JSON.parse(response) as AgentProductSearchResponse;
+  return res;
 }

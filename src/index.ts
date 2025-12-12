@@ -2,7 +2,7 @@ import app from "./configs/app";
 import appConfig from "./configs";
 import createLogger, { ModuleType } from "./utils/logger";
 import { connectMongoDb } from "./configs/persistence/database";
-// import { requestHandler } from "./configs/agents";
+// import { requestHandler } from "./configs/openai";
 
 const logger = createLogger(ModuleType.Entry, "ENTRY");
 const { port, environment, nodeEnv } = appConfig;

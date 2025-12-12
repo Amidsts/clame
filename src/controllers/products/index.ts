@@ -1,37 +1,48 @@
-import { RouteError } from "../../configs/errors";
+import { InternalError, RouteError } from "../../configs/errors";
 import * as client from "../../configs/openai";
+import { IProduct } from "../../models/products/products.model";
 import createLogger, { ModuleType } from "../../utils/logger";
-import { AgentProductSearchResponse } from "./types";
+import { processProductCategories } from "./product.utils";
+import { AgentProductSearchResponse, AgentProductSearchStatus } from "./types";
 
 const logger = createLogger(ModuleType.Controller, "PRODUCT CONTROLLER");
 
-export async function searchProduct(productInfo: string) {
-  //send product info to AI agent
-  const response = await client.searchProduct(productInfo);
-  if (!response) {
-    const error = new RouteError(
-      "AI Agent could not process the product search"
-    );
+export async function searchProduct(
+  productInfo: string
+): Promise<{ message: string; products: IProduct[] }> {
+  logger.info("Product search request", { productRequest: productInfo });
 
-    logger.info(error.message, { error, productInfo });
-    throw error;
+  let productDetails: AgentProductSearchResponse;
+  try {
+    productDetails = await client.prepareProductDetailsForRequest(productInfo);
+  } catch (error) {
+    logger.error("No product details found for the given request", {
+      productRequest: productInfo,
+      error,
+    });
+    return;
   }
 
-  logger.info("AI Agent product search response", { response });
-  const { categories, status, message, input_text } = JSON.parse(
-    response
-  ) as AgentProductSearchResponse;
+  logger.info("AI Agent product search response", { productDetails });
+  const { categories, status, message, input_text } = productDetails;
 
-  //process response
-  const searchProducts = productSearchHandler(categories);
-  const availableMatchingProducts = searchProducts[status];
-  //return response
+  try {
+    const products = await processProductCategories(categories);
+    if (!products.length || status === AgentProductSearchStatus.NOT_FOUND) {
+      logger.info("No products found for the given categories", {
+        categories,
+        products,
+        input_text,
+        status,
+      });
+    }
+
+    return {
+      message,
+      products,
+    };
+  } catch (error) {
+    logger.error(error.message, { error, productInfo });
+    throw error;
+  }
 }
-
-const productSearchHandler = (productCategories: string[]) => {
-  return {
-    FOUND: processFoundProductCategories(productCategories),
-    NOT_FOUND: processNotFoundProductCategories(productCategories),
-    SIMILAR: processSimilarProductCategories(productCategories),
-  };
-};
